@@ -3,7 +3,7 @@ import sqlite3
 from db import appointments
 '''
 
-CONN = sqlite3.connect('appointments.db')
+CONN = sqlite3.connect('lib/db/appointments.db')
 CURSOR = CONN.cursor()
 
 class Patient():

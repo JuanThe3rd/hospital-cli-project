@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from helpers import admin_page, doctor_page, patient_page
-from classes import Patient, Doctor, Appointment
+import sys
 
 if __name__ == '__main__':
     
@@ -22,6 +22,6 @@ if __name__ == '__main__':
         elif role == '3':
             patient_page()
         elif role == '4':
-            break
+            sys.exit('\n    Quitting Program...\n')
         else:
             print('\n    ENTRY INVALID! Must be a number 1 - 4')
