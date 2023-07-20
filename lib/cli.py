@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import helpers
-from db import classes
+from helpers import admin_page, doctor_page, patient_page
+from classes import Patient, Doctor, Appointment
 
 if __name__ == '__main__':
     
@@ -16,11 +16,11 @@ if __name__ == '__main__':
     Choose User: ''')
 
         if role == '1':
-            helpers.admin_page()
+            admin_page()
         elif role == '2':
-            helpers.doctor_page()
+            doctor_page()
         elif role == '3':
-            helpers.patient_page()
+            patient_page()
         elif role == '4':
             break
         else:
