@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from helpers import admin_page, doctor_page, patient_page
+from helpers import admin_page, doctor_page, patient_page, log_in
 import sys
 
 if __name__ == '__main__':
@@ -16,9 +16,15 @@ if __name__ == '__main__':
     Choose User: ''')
 
         if role == '1':
-            admin_page()
+            if log_in(0):
+                admin_page()
+            else:
+                print('\n    Either username or password is incorrect, Please try again.')
         elif role == '2':
-            doctor_page()
+            if log_in(1):
+                doctor_page()
+            else:
+                print('\n    Either username or password is incorrect, Please try again.')
         elif role == '3':
             patient_page()
         elif role == '4':

@@ -32,49 +32,49 @@ def log_in(role):
     return flag
 
 def admin_page():
-    if log_in(0):
-        print('''
+    print('''
     ------ Admin Page ------
 
     1 - Add Doctor
     2 - Remove Doctor
     3 - Quit Program
         ''')
-        action = input('    Choose Action: ')
-        
-        if action == '1':
-            admin_action_1()
-        elif action == '2':
-            admin_action_2()
-        elif action == '3':
-            sys.exit('\n    Quitting Program...\n')
-        else:
-            print('\nInvaid Entry, Sending back to Home Page...')
+    action = input('    Choose Action: ')
+    
+    if action == '1':
+        admin_action('1')
+    elif action == '2':
+        admin_action('2')
+    elif action == '3':
+        sys.exit('\n    Quitting Program...\n')
     else:
-        print('\n    Either username or password is incorrect, Please try again.')
+        print('\nInvaid Entry, Sending back to Home Page...')
 
-def admin_action_1():
+def admin_action(action):
     lastname = input('\n    Enter Doctor\'s last name: ')
 
-    sql = f'INSERT INTO doctors (lastname) VALUES (\'{lastname}\');'
-    CURSORD.execute(sql)
+    if action == '1':
+        sql = f'INSERT INTO doctors (lastname) VALUES (?);'
+    else:
+        sql = f'DELETE FROM doctors WHERE lastname = ?;'
 
-    print(f'\n    Dr. {lastname} has been added to the database!')
+    CURSORD.execute(sql, (lastname,))
+    CONND.commit()
 
-    continuation = input('\nDo you wish to do something else as an admin? (Y/N): ')
-    flag = True
-    while flag:
-        if (continuation != 'Y' or continuation != 'N'):
-            print('\n    Invalid input, please enter \'Y\' or \'N\'')
-            continuation = input('\nDo you wish to do something else as an admin? (Y/N): ')
-        else:
-            flag = False
-            if continuation == 'Y':
-                admin_page()
+    if action == '1':
+        print(f'\n    Dr. {lastname} has been added to the database!')
+    else:
+        print(f'\n    Dr. {lastname} has been deleted from the database!')
 
+    continuation = input('\nDo you wish to do something else as an admin? (Enter \'Y\' for yes and anything else for no): ')
+    if (continuation == 'Y'):
+        admin_page()
 
 def admin_action_2():
-    pass
+    lastname = input('\n    Enter Doctor\'s last name: ')
+
+    sql = f'DELETE FROM doctors WHERE lastname = ?;'
+    CURSORD.execute(sql, (lastname,))
 
 def doctor_page():
     if log_in(1):
