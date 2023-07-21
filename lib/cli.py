@@ -16,13 +16,15 @@ if __name__ == '__main__':
     Choose User: ''')
 
         if role == '1':
-            if log_in(0):
-                admin_page()
+            log_in_data = log_in('admin')
+            if log_in_data[0]:
+                admin_page(log_in_data[1])
             else:
                 print('\n    Either username or password is incorrect, Please try again.')
         elif role == '2':
-            if log_in(1):
-                doctor_page()
+            log_in_data = log_in('doctor')
+            if log_in_data[0]:
+                doctor_page(log_in_data[1])
             else:
                 print('\n    Either username or password is incorrect, Please try again.')
         elif role == '3':

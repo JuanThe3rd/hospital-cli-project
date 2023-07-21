@@ -8,8 +8,14 @@ CURSORL = CONNL.cursor()
 CONND = sqlite3.connect('lib/db/doctors.db')
 CURSORD = CONND.cursor()
 
+CONNA = sqlite3.connect('lib/db/appointments.db')
+CURSORA = CONNA.cursor()
+
+CONNP = sqlite3.connect('lib/db/patients.db')
+CURSORP = CONNP.cursor()
+
 def log_in(role):
-    if role == 0:
+    if role == 'admin':
         sql = '''
             SELECT * FROM logins WHERE type = 'admin';
         '''
@@ -24,20 +30,26 @@ def log_in(role):
     username = input('    Username: ')
     password = input('    Password: ')
     
-    flag = True
+    flag = False
+    user = ''
     for login in logins:
         if login[1] == username and login[2] == password:
             flag = True
+            user = login[4]
 
-    return flag
+    return [flag, user]
 
-def admin_page():
-    print('''
+#        <---------- Admin Page ---------->
+
+def admin_page(user):
+    print(f'''
     ------ Admin Page ------
+
+    Welcome {user}!
 
     1 - Add Doctor
     2 - Remove Doctor
-    3 - Quit Program
+    3 - Go Back
         ''')
     action = input('    Choose Action: ')
     
@@ -70,17 +82,106 @@ def admin_action(action):
     if (continuation == 'Y'):
         admin_page()
 
-def admin_action_2():
-    lastname = input('\n    Enter Doctor\'s last name: ')
+#        <---------- Doctor Page ---------->
 
-    sql = f'DELETE FROM doctors WHERE lastname = ?;'
-    CURSORD.execute(sql, (lastname,))
+def doctor_page(user):
+    print(f'''
+    ------ Doctor Page ------
 
-def doctor_page():
-    if log_in(1):
-        pass
-    else: 
-        print('\n    Either username or password is incorrect, Please try again.')
+    Welcome Dr. {user}!
+
+    1 - View Appointments
+    2 - Add Appointment
+    3 - Remove Appointment
+    4 - Quit Program
+        ''')
+    action = input('    Choose Action: ')
+
+    if action == '1':
+        view_appointments(user)
+    elif action == '2':
+        add_appointment(user)
+    elif action == '3':
+        remove_appointment(user)
+    elif action == '4':
+        sys.exit('\n    Quitting Program...\n')
+    else:
+        print('\nInvaid Entry, Sending back to Home Page...')
+
+def view_appointments(user):
+    doctor = CURSORD.execute('SELECT * FROM doctors WHERE lastname = ?;', (user,)).fetchone()
+    sql = 'SELECT * FROM appointments WHERE doctor_id = ?;'
+    appointments = CURSORA.execute(sql, (doctor[0],)).fetchall()
+
+    print('\n ----------- Appointments -----------')
+    print('| Patient         | Date & Time      |')
+    print('|-----------------|------------------|')
+    for appointment in appointments:
+        print(f'| {appointment[1]}               | {appointment[2]} {appointment[3]} |')
+    print(' ------------------------------------')
+
+    continuation = input('\nDo you wish to do something else as a doctor? (Enter \'Y\' for yes and anything else for no): ')
+    if (continuation == 'Y'):
+        doctor_page(user)
+
+def add_appointment(user):
+    patient_first_name = input('    Enter patient\'s first name: ')
+    patient_last_name = input('    Enter patient\'s last name: ')
+    patient_dob = input('    Enter patient\'s dob: ')
+    date = input('    Enter date for appointment: ')
+    time = input('    Enter time for appointment (format: hh:mm): ')
+
+    sql = 'SELECT * FROM patients WHERE firstname = ? AND lastname = ? AND dob = ?;'
+    patient = CURSORP.execute(sql, (patient_first_name, patient_last_name, patient_dob)).fetchone()
+
+    if patient == None:
+        sql = 'INSERT INTO patients (firstname, lastname, dob) VALUES (?, ?, ?);'
+        CURSORP.execute(sql, (patient_first_name, patient_last_name, patient_dob))
+        CONNP.commit()
+        patient = CURSORP.execute('SELECT * FROM patients WHERE firstname = ? AND lastname = ?;', (patient_first_name, patient_last_name)).fetchone()
+
+    doctor = CURSORD.execute('SELECT * FROM doctors WHERE lastname = ?;', (user,)).fetchone()
+    
+    sql = 'INSERT INTO appointments (doctor_id, patient_id, date, time) VALUES (?, ?, ?, ?);'
+    CURSORA.execute(sql, (doctor[0], patient[0], date, time))
+    CONNA.commit()
+    print('\n    Appointment has been successfully added!')
+
+    continuation = input('\nDo you wish to do something else as a doctor? (Enter \'Y\' for yes and anything else for no): ')
+    if (continuation == 'Y'):
+        doctor_page(user)
+
+def remove_appointment(user):
+    patient_first_name = input('    Enter patient\'s first name: ')
+    patient_last_name = input('    Enter patient\'s last name: ')
+    patient_dob = input('    Enter patient\'s dob: ')
+    date = input('    Enter date for appointment: ')
+    time = input('    Enter time for appointment (format: hh:mm): ')
+
+    sql = 'SELECT * FROM doctors WHERE lastname = ?'
+    doctor = CURSORD.execute(sql, (user,)).fetchone()
+
+    sql = 'SELECT * FROM patients WHERE firstname = ? AND lastname = ? AND dob = ?;'
+    patient = CURSORP.execute(sql, (patient_first_name, patient_last_name, patient_dob)).fetchone()
+
+    sql = 'SELECT * FROM appointments WHERE doctor_id = ? AND patient_id = ? AND date = ? AND time = ?'
+    appointment = CURSORA.execute(sql, (doctor[0], patient[0], date, time))
+
+    if patient == None:
+        print('\nThis patient was not found in our database, Redirecting to Home Page...')
+    elif appointment == None:
+        print('\nThere was no appointment scheduled for this patient at this time, Redirecting to Home Page...')
+    else:
+        sql = 'DELETE FROM appointments WHERE doctor_id = ? AND patient_id = ? AND date = ? AND time = ?'
+        CURSORA.execute(sql, (doctor[0], patient[0], date, time))
+        CONNA.commit()
+        print('\n    Appointment has been successfully canceled!')
+
+    continuation = input('\nDo you wish to do something else as a doctor? (Enter \'Y\' for yes and anything else for no): ')
+    if (continuation == 'Y'):
+        doctor_page(user)
+
+#        <---------- Patient Page ---------->
 
 def patient_page():
     print('\n    In Progress...')
