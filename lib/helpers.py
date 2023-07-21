@@ -1,7 +1,5 @@
-from classes import Patient, Doctor, Appointment
 import sqlite3
 import sys
-import datetime
 
 CONNL = sqlite3.connect('lib/db/login.db')
 CURSORL = CONNL.cursor()

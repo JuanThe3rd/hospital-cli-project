@@ -29,5 +29,5 @@ $ python lib/cli.py
 * As a user, if I am in the role of a doctor, I will be able to view all of my patients' appointments.
 * As a user, if I am in the role of a doctor, I will be able to add or remove appointments from the list.
 * As a user, if I am in the role of a patient, I will be able to check if I have any upcoming appointments.
-* As a user, if I am in the role of a patient, I will be able to create an appointment with my doctor. 
+* As a user, if I am in the role of a patient, I will be able to create or cancel an appointment with my doctor. 
 
