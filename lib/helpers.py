@@ -1,6 +1,7 @@
 from classes import Patient, Doctor, Appointment
 import sqlite3
 import sys
+import datetime
 
 CONNL = sqlite3.connect('lib/db/login.db')
 CURSORL = CONNL.cursor()
@@ -13,6 +14,39 @@ CURSORA = CONNA.cursor()
 
 CONNP = sqlite3.connect('lib/db/patients.db')
 CURSORP = CONNP.cursor()
+
+def validate_date(date_text):
+    if (len(date_text) != 10) or (date_text[2] != '/') or (date_text[5] != '/'):
+        return False
+    
+    for char in date_text:
+        if char == '/':
+            pass
+        elif char.isdigit() == False:
+            return False
+
+    return True
+
+def validate_time(time_text):
+    if (len(time_text) != 5) or (time_text[2] != ':'):
+        return False
+    
+    for char in time_text:
+        if char == ':':
+            pass
+        elif char.isdigit() == False:
+            return False
+        
+    return True
+
+def validate_doctor(lastname):
+    sql = 'SELECT * FROM doctors WHERE lastname = ?;'
+    doctor = CURSORD.execute(sql, (lastname,)).fetchone()
+
+    if doctor == None:
+        return False
+    else:
+        return True
 
 def log_in(role):
     if role == 'admin':
@@ -63,7 +97,11 @@ def admin_page(user):
         print('\nInvaid Entry, Sending back to Home Page...')
 
 def admin_action(action, user):
-    lastname = input('\n    Enter Doctor\'s last name: ')
+    lastname = input('\n    Enter Doctor\'s last name: ').title()
+
+    if action == '2' and validate_doctor(lastname) == False:
+        print(f'\n    Dr. {lastname.title()} was not found in our files, Redirecting back to Home Page...')
+        return 0
 
     if action == '1':
         sql = f'INSERT INTO doctors (lastname) VALUES (?);'
@@ -133,11 +171,34 @@ def view_appointments(user):
         doctor_page(user)
 
 def add_appointment(user):
-    patient_first_name = input('    Enter patient\'s first name: ')
-    patient_last_name = input('    Enter patient\'s last name: ')
+    patient_first_name = input('    Enter patient\'s first name: ').title()
+    patient_last_name = input('    Enter patient\'s last name: ').title()
     patient_dob = input('    Enter patient\'s dob (format: mm/dd/yyyy): ')
+
+    while True:
+        if validate_date(patient_dob) == False:
+            print('\nPatient\'s DOB is formatted incorrectly, Please try again')
+            patient_dob = input('\n    Enter patient\'s dob (format: mm/dd/yyyy): ')
+        else:
+            break
+
     date = input('    Enter date for appointment (format: mm/dd/yyyy): ')
+
+    while True:
+        if validate_date(date) == False:
+            print('\nAppointment date is formatted incorrectly, Please try again')
+            date = input('\n    Enter date for appointment (format: mm/dd/yyyy): ')
+        else: 
+            break
+
     time = input('    Enter time for appointment (format: hh:mm): ')
+
+    while True:
+        if validate_time(time) == False:
+            print('\nAppointment time is formatted incorrectly, Please try again')
+            time = input('\n    Enter time for appointment (format: hh:mm): ')
+        else:
+            break
 
     sql = 'SELECT * FROM patients WHERE firstname = ? AND lastname = ? AND dob = ?;'
     patient = CURSORP.execute(sql, (patient_first_name, patient_last_name, patient_dob)).fetchone()
@@ -160,11 +221,34 @@ def add_appointment(user):
         doctor_page(user)
 
 def remove_appointment(user):
-    patient_first_name = input('    Enter patient\'s first name: ')
-    patient_last_name = input('    Enter patient\'s last name: ')
-    patient_dob = input('    Enter patient\'s dob (format: mm/dd/yyyy): ')
+    patient_first_name = input('    Enter patient\'s first name: ').title()
+    patient_last_name = input('    Enter patient\'s last name: ').title()
+    patient_dob = input('    Enter patient\'s dob (format: format: mm/dd/yyyy): ')
+    
+    while True:
+        if validate_date(patient_dob) == False:
+            print('\nPatient\'s DOB is formatted incorrectly, Please try again')
+            patient_dob = input('\n    Enter patient\'s dob (format: mm/dd/yyyy): ')
+        else:
+            break
+
     date = input('    Enter date for appointment (format: mm/dd/yyyy): ')
+
+    while True:
+        if validate_date(date) == False:
+            print('\nAppointment date is formatted incorrectly, Please try again')
+            date = input('\n    Enter date for appointment (format: mm/dd/yyyy): ')
+        else: 
+            break
+
     time = input('    Enter time for appointment (format: hh:mm): ')
+
+    while True:
+        if validate_time(time) == False:
+            print('\nAppointment time is formatted incorrectly, Please try again')
+            time = input('\n    Enter time for appointment (format: hh:mm): ')
+        else:
+            break
 
     sql = 'SELECT * FROM doctors WHERE lastname = ?'
     doctor = CURSORD.execute(sql, (user,)).fetchone()
@@ -194,6 +278,7 @@ def remove_appointment(user):
 def patient_page():
     print('''
     ------ Patient Page ------
+
     1 - Check For Upcoming Appointments
     2 - Make an Appointment
     3 - Cancel an Appointment
@@ -213,16 +298,32 @@ def patient_page():
         print('\nInvaid Entry, Sending back to Home Page...')
 
 def view_patient_appointments():
-    dr_last_name = input('\n    Enter Dr\'s last name: ')
-    patient_first_name = input('    Enter patient\'s first name: ')
-    patient_last_name = input('    Enter patient\'s last name: ')
+    dr_last_name = input('\n    Enter Dr\'s last name: ').title()
+
+    if validate_doctor(dr_last_name.title()) == False:
+        print(f'\n    Dr. {dr_last_name.title()} was not found in our files, Redirecting you to Home Page...')
+        return 0
+
+    patient_first_name = input('    Enter patient\'s first name: ').title()
+    patient_last_name = input('    Enter patient\'s last name: ').title()
     patient_dob = input('    Enter patient\'s dob (format: mm/dd/yyyy): ')
+
+    while True:
+        if validate_date(patient_dob) == False:
+            print('\nPatient\'s DOB is formatted incorrectly, Please try again')
+            patient_dob = input('\n    Enter patient\'s dob (format: mm/dd/yyyy): ')
+        else:
+            break
 
     sql = 'SELECT * FROM doctors WHERE lastname = ?'
     doctor = CURSORD.execute(sql, (dr_last_name,)).fetchone()
 
     sql = 'SELECT * FROM patients WHERE firstname = ? AND lastname = ? AND dob = ?'
     patient = CURSORP.execute(sql, (patient_first_name, patient_last_name, patient_dob)).fetchone()
+
+    if patient == None:
+        print(f'\n{patient_first_name} {patient_last_name} was not found in our files, Redirecting back to Home Page...')
+        return 0
 
     sql = 'SELECT * FROM appointments WHERE doctor_id = ? AND patient_id = ?'
     appointments = CURSORA.execute(sql, (doctor[0], patient[0])).fetchall()
@@ -239,12 +340,40 @@ def view_patient_appointments():
         patient_page()
 
 def add_patient_appointment():
-    dr_last_name = input('\n    Enter Dr\'s last name: ')
-    patient_first_name = input('    Enter patient\'s first name: ')
-    patient_last_name = input('    Enter patient\'s last name: ')
-    patient_dob = input('    Enter patient\'s dob (format: mm/dd/yy): ')
-    date = input('    Enter date appointment (format: mm/dd/yyyy): ')
-    time = input('    Enter time appointment (format: hh:mm): ')
+    dr_last_name = input('\n    Enter Dr\'s last name: ').title()
+
+    if validate_doctor(dr_last_name.title()) == False:
+        print(f'\n    Dr. {dr_last_name.title()} was not found in our files, Redirecting you to Home Page...')
+        return 0
+
+    patient_first_name = input('    Enter patient\'s first name: ').title()
+    patient_last_name = input('    Enter patient\'s last name: ').title()
+    patient_dob = input('    Enter patient\'s dob (format: mm/dd/yyyy): ')
+    
+    while True:
+        if validate_date(patient_dob) == False:
+            print('\nPatient\'s DOB is formatted incorrectly, Please try again')
+            patient_dob = input('\n    Enter patient\'s dob (format: mm/dd/yyyy): ')
+        else:
+            break
+
+    date = input('    Enter date for appointment (format: mm/dd/yyyy): ')
+
+    while True:
+        if validate_date(date) == False:
+            print('\nAppointment date is formatted incorrectly, Please try again')
+            date = input('\n    Enter date for appointment (format: mm/dd/yyyy): ')
+        else: 
+            break
+
+    time = input('    Enter time for appointment (format: hh:mm): ')
+
+    while True:
+        if validate_time(time) == False:
+            print('\nAppointment time is formatted incorrectly, Please try again')
+            time = input('\n    Enter time for appointment (format: hh:mm): ')
+        else:
+            break
 
     sql = 'SELECT * FROM doctors WHERE lastname = ?'
     doctor = CURSORD.execute(sql, (dr_last_name,)).fetchone()
@@ -271,12 +400,40 @@ def add_patient_appointment():
         patient_page()
 
 def remove_patient_appointment():
-    dr_last_name = input('\n    Enter Dr\'s last name: ')
-    patient_first_name = input('    Enter patient\'s first name: ')
-    patient_last_name = input('    Enter patient\'s last name: ')
+    dr_last_name = input('\n    Enter Dr\'s last name: ').title()
+
+    if validate_doctor(dr_last_name.title()) == False:
+        print(f'\n    Dr. {dr_last_name.title()} was not found in our files, Redirecting you to Home Page...')
+        return 0
+
+    patient_first_name = input('    Enter patient\'s first name: ').title()
+    patient_last_name = input('    Enter patient\'s last name: ').title()
     patient_dob = input('    Enter patient\'s dob (format: mm/dd/yy): ')
-    date = input('    Enter date appointment (format: mm/dd/yyyy): ')
-    time = input('    Enter time appointment (format: hh:mm): ')
+    
+    while True:
+        if validate_date(patient_dob) == False:
+            print('\nPatient\'s DOB is formatted incorrectly, Please try again')
+            patient_dob = input('\n    Enter patient\'s dob (format: mm/dd/yyyy): ')
+        else:
+            break
+
+    date = input('    Enter date for appointment (format: mm/dd/yyyy): ')
+
+    while True:
+        if validate_date(date) == False:
+            print('\nAppointment date is formatted incorrectly, Please try again')
+            date = input('\n    Enter date for appointment (format: mm/dd/yyyy): ')
+        else: 
+            break
+
+    time = input('    Enter time for appointment (format: hh:mm): ')
+
+    while True:
+        if validate_time(time) == False:
+            print('\nAppointment time is formatted incorrectly, Please try again')
+            time = input('\n    Enter time for appointment (format: hh:mm): ')
+        else:
+            break
 
     sql = 'SELECT * FROM doctors WHERE lastname = ?'
     doctor = CURSORD.execute(sql, (dr_last_name,)).fetchone()
