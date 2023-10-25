@@ -95,24 +95,37 @@ def admin_page(user):
         print('\nInvaid Entry, Sending back to Home Page...')
 
 def admin_action(action, user):
-    lastname = input('\n    Enter Doctor\'s last name: ').title()
-
-    if action == '2' and validate_doctor(lastname) == False:
-        print(f'\n    Dr. {lastname.title()} was not found in our files, Redirecting back to Home Page...')
-        return 0
-
     if action == '1':
-        sql = f'INSERT INTO doctors (lastname) VALUES (?);'
-    else:
-        sql = f'DELETE FROM doctors WHERE lastname = ?;'
+        lastname = input('    Enter Dr\'s lastname: ')
+        username = input('    Enter Dr\'s login username: ')
+        password = input('    Enter Dr\'s login password: ')
 
-    CURSORD.execute(sql, (lastname,))
-    CONND.commit()
+        sql_dr = f'INSERT INTO doctors (lastname) VALUES (?)'
+        sql_login = f'INSERT INTO logins (username, password, type, user) VALUES (?, ?, ?, ?)'
 
-    if action == '1':
+        CURSORD.execute(sql_dr, (lastname.capitalize(),))
+        CONND.commit()
+
+        CURSORL.execute(sql_login, (username, password, 'doctor', lastname.capitalize()))
+        CONNL.commit()
+
         print(f'\n    Dr. {lastname} has been added to the database!')
-    else:
-        print(f'\n    Dr. {lastname} has been deleted from the database!')
+    elif action == '2':
+        lastname = input('    Enter lastname of the Dr you wish to remove: ').capitalize()
+
+        if validate_doctor(lastname) == False:
+            print(f'\n    Dr. {lastname.title()} was not found in our files, Redirecting back to Home Page...')
+        else:
+            sql_d = f'DELETE FROM doctors WHERE lastname = ?;'
+            sql_l = f'DELETE FROM logins WHERE user = ?;'
+
+            CURSORD.execute(sql_d, (lastname,))
+            CONND.commit()
+
+            CURSORL.execute(sql_l, (lastname,))
+            CONNL.commit()
+
+            print(f'\n    Dr. {lastname} has been successfully deleted from our database.')
 
     continuation = input('\nDo you wish to do something else as an admin? (Enter \'Y\' for yes and anything else for no): ')
     if (continuation == 'Y'):
